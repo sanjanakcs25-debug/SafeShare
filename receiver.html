@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Receiver dashboard – SafeShare</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"><link rel="stylesheet" href="style.css"></head>
+<body><header id="hdr"></header><main>
+<h1>Receiver dashboard</h1><p class="sub">Find resources that can help you.</p><div class="stats" id="stats"></div>
+<h2>Browse resources</h2><input id="q" placeholder="Search by item or area" aria-label="Search resources">
+<div class="chips" id="chips"></div><div class="card" id="list"></div>
+<h2>My requests</h2><div class="card" id="mine"></div></main><div id="toast"></div>
+<script src="app.js"></script>
+<script>
+const me=guard('receiver');let cat='All';
+function render(){
+ const items=load(K.i,[]),reqs=load(K.r,[]),mine=reqs.filter(r=>r.by===me.email),q=$('#q').value.toLowerCase();
+ $('#stats').innerHTML=stat(items.filter(i=>i.status==='Available').length,'Available items')+stat(mine.length,'My requests');
+ $('#chips').innerHTML=['All','Books','Clothes','Food','Other'].map(c=>`<button class="${c===cat?'on':''}" onclick="cat='${c}';render()">${c}</button>`).join('');
+ const list=items.filter(i=>i.status==='Available'&&(cat==='All'||i.cat===cat)&&(i.title+i.loc+i.desc).toLowerCase().includes(q));
+ $('#list').innerHTML=list.map(i=>{const done=mine.some(r=>r.item===i.id);return `<div class="row"><div><b>${esc(i.title)}</b><small>${esc(i.cat)} · ${i.qty} items · ${esc(i.loc)}</small>${i.desc?`<small>${esc(i.desc)}</small>`:''}</div><button class="p sm" onclick="request(${i.id})" ${done?'disabled':''}>${done?'Requested':'Request item'}</button></div>`}).join('')||'<p class="note">Nothing matches. Clear the search or pick another category.</p>';
+ $('#mine').innerHTML=mine.map(r=>`<div class="row"><b>${esc(items.find(i=>i.id===r.item).title)}</b><span class="tag ${r.status==='Approved'?'':r.status==='Rejected'?'b':'w2'}">${r.status}</span></div>`).join('')||'<p class="note">You have not requested anything yet.</p>'}
+function request(id){const rs=load(K.r,[]);rs.push({id:Date.now(),item:id,by:me.email,name:me.name,status:'Pending'});save(K.r,rs);render();toast('Request sent to the donor.')}
+$('#q').addEventListener('input',render);render();
+</script></body></html>

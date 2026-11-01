@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin dashboard – SafeShare</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"><link rel="stylesheet" href="style.css"></head>
+<body><header id="hdr"></header><main id="app"></main><div id="toast"></div><script src="app.js"></script>
+<script>
+const me=guard('admin');
+function render(){
+ const us=load(K.u,[]).filter(u=>u.role!=='admin'),items=load(K.i,[]),ps=load(K.p,[]);
+ $('#app').innerHTML=`<h1>Admin dashboard</h1><p class="sub">Approve users, watch activity and review blocked links.</p>
+ <div class="stats">${stat(us.length,'Total users')}${stat(us.filter(u=>u.role==='donor').length,'Donors')}${stat(us.filter(u=>u.role==='receiver').length,'Receivers')}${stat(items.length,'Donations')}${stat(us.filter(u=>u.status==='pending').length,'Awaiting approval')}</div>
+ <h2>Manage users</h2><div class="card">${us.map(u=>`<div class="row"><div><b>${esc(u.email)}</b><small>${u.role}</small></div><div><span class="tag ${u.status==='active'?'':u.status==='pending'?'w2':'b'}">${u.status}</span>
+ ${u.status==='pending'?`<button class="sm p" onclick="setS('${esc(u.email)}','active')">Approve</button>`:''}
+ ${u.status==='active'?`<button class="sm bad" onclick="setS('${esc(u.email)}','suspended')">Suspend</button>`:''}
+ ${u.status==='suspended'?`<button class="sm" onclick="setS('${esc(u.email)}','active')">Reinstate</button>`:''}</div></div>`).join('')}</div>
+ <h2>Blocked links and reports</h2><div class="card">${ps.map(r=>`<div class="row"><div><b>${esc(r.link.slice(0,60))}</b><small>Posted by ${esc(r.who)} · ${esc(r.when)}</small></div><span class="tag b">Blocked</span></div>`).join('')||'<p class="note">No unsafe links detected so far.</p>'}</div>`}
+function setS(e,s){const us=load(K.u,[]);us.find(u=>u.email===e).status=s;save(K.u,us);render()}
+render();
+</script></body></html>

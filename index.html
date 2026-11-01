@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Log in – SafeShare</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"><link rel="stylesheet" href="style.css"></head>
+<body class="auth"><header><b>SafeShare</b><span>Connect. Share. Make a difference.</span></header>
+<main><div class="card authbox"><h1>Welcome to SafeShare</h1><p class="sub">Share what you don't need with people who do.</p>
+<div class="tabs"><a class="on" href="index.html">Log in</a><a href="register.html">Sign up</a></div>
+<label for="e">Email</label><input id="e" type="email" autocomplete="email">
+<label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
+<button class="p w" onclick="login()">Log in</button><div class="err" id="err" role="alert"></div>
+<p class="note">Demo: admin@safeshare.com / Admin@123 · donor1@gmail.com / Donor@123 · receiver1@gmail.com / Recv@123</p></div></main>
+<div id="toast"></div><script src="app.js"></script>
+<script>
+function login(){
+ const u=load(K.u,[]).find(x=>x.email===$('#e').value.trim().toLowerCase()&&x.pw===$('#p').value);
+ if(!u)return $('#err').textContent='Email or password is incorrect.';
+ if(u.status==='pending')return $('#err').textContent='Your account is waiting for admin approval.';
+ if(u.status==='suspended')return $('#err').textContent='This account is suspended. Contact an admin.';
+ sessionStorage.setItem('ss_me',u.email);location.href=HOME[u.role]}
+</script></body></html>

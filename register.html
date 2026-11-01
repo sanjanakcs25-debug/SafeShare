@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Create account – SafeShare</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"><link rel="stylesheet" href="style.css"></head>
+<body class="auth"><header><b>SafeShare</b><span>Become a part of our community</span></header>
+<main><div class="card authbox"><h1>Create your account</h1><p class="sub">Takes a minute. An admin approves every new account.</p>
+<div class="tabs"><a href="index.html">Log in</a><a class="on" href="register.html">Sign up</a></div>
+<div id="step1"><label for="n">Full name</label><input id="n" autocomplete="name">
+<label for="e">Email</label><input id="e" type="email" autocomplete="email">
+<label for="p">Password (8+ characters, with a number)</label><input id="p" type="password" autocomplete="new-password">
+<label for="p2">Confirm password</label><input id="p2" type="password" autocomplete="new-password">
+<label for="r">I want to</label><select id="r"><option value="donor">Donate items (Donor)</option><option value="receiver">Receive items (Receiver / NGO)</option></select>
+<button class="p w" onclick="signup()">Create account</button></div>
+<div id="step2" hidden><p>Enter the 6-digit code sent to <b id="em"></b>.</p><label for="o">Verification code</label><input id="o" inputmode="numeric" maxlength="6">
+<button class="p w" onclick="verify()">Verify email</button></div>
+<div class="err" id="err" role="alert"></div></div></main>
+<div id="toast"></div><script src="app.js"></script>
+<script>
+let pending=null;const err=t=>$('#err').textContent=t;
+function signup(){
+ const n=$('#n').value.trim(),e=$('#e').value.trim().toLowerCase(),p=$('#p').value;
+ if(n.length<2)return err('Enter your full name.');
+ if(!/^\S+@\S+\.\S+$/.test(e))return err('Enter a valid email address.');
+ if(p.length<8||!/\d/.test(p))return err('Password needs 8+ characters and a number.');
+ if(p!==$('#p2').value)return err('Passwords do not match.');
+ if(load(K.u,[]).some(u=>u.email===e))return err('This email is already registered.');
+ pending={name:n,email:e,pw:p,role:$('#r').value,code:String(Math.floor(100000+Math.random()*900000))};
+ $('#step1').hidden=true;$('#step2').hidden=false;$('#em').textContent=e;err('');
+ toast('Demo code: '+pending.code); // a real backend emails this code
+}
+function verify(){
+ if($('#o').value!==pending.code)return err('Code is incorrect. Check it and try again.');
+ const us=load(K.u,[]);us.push({email:pending.email,pw:pending.pw,name:pending.name,role:pending.role,status:'pending'});save(K.u,us);
+ alert('Email verified. An admin will approve your account, then you can log in.');location.href='index.html'}
+</script></body></html>

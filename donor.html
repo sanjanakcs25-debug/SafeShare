@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Donor dashboard – SafeShare</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"><link rel="stylesheet" href="style.css"></head>
+<body><header id="hdr"></header><main id="app"></main><div id="toast"></div>
+<dialog id="dlg"><h2 style="margin-top:0">Add new donation</h2>
+<label for="c">Category</label><select id="c"><option>Books</option><option>Clothes</option><option>Food</option><option>Other</option></select>
+<label for="t">Item name</label><input id="t"><label for="qt">Quantity</label><input id="qt" type="number" min="1" value="1">
+<label for="l">Pickup area</label><input id="l"><label for="d">Details</label><textarea id="d" rows="3"></textarea>
+<div class="err" id="derr" role="alert"></div><div class="acts"><button onclick="dlg.close()">Cancel</button><button class="p" onclick="saveItem()">Post donation</button></div></dialog>
+<script src="app.js"></script>
+<script>
+const me=guard('donor');const dlg=$('#dlg');
+function render(){
+ const items=load(K.i,[]),reqs=load(K.r,[]),mine=items.filter(i=>i.owner===me.email),inc=reqs.filter(r=>mine.some(i=>i.id===r.item));
+ $('#app').innerHTML=`<h1>Donor dashboard</h1><p class="sub">Welcome back, ${esc(me.name)}. Make a difference today.</p>
+ <div class="stats">${stat(mine.length,'Donations')}${stat(inc.filter(r=>r.status==='Pending').length,'Requests')}${stat(mine.filter(i=>i.status==='Completed').length,'Completed')}</div>
+ <button class="p w" onclick="dlg.showModal()">+ Add new donation</button>
+ <h2>My donations</h2><div class="card">${mine.map(i=>`<div class="row"><div><b>${esc(i.title)}</b><small>${esc(i.cat)} · ${i.qty} items · ${esc(i.loc)}</small></div><span class="tag ${i.status==='Available'?'':'w2'}">${i.status}</span></div>`).join('')||'<p class="note">No donations yet. Add your first one above.</p>'}</div>
+ <h2>Receiver requests</h2><div class="card">${inc.map(r=>{const i=items.find(x=>x.id===r.item);return `<div class="row"><div><b>Request for ${esc(i.title)}</b><small>From ${esc(r.name)}</small></div>${r.status==='Pending'?`<div><button class="sm p" onclick="answer(${r.id},true)">Approve</button> <button class="sm bad" onclick="answer(${r.id},false)">Reject</button></div>`:`<span class="tag ${r.status==='Approved'?'':'b'}">${r.status}</span>`}</div>`}).join('')||'<p class="note">No requests yet.</p>'}</div>`}
+function answer(id,ok){const rs=load(K.r,[]),r=rs.find(x=>x.id===id);r.status=ok?'Approved':'Rejected';save(K.r,rs);
+ if(ok){const is=load(K.i,[]);is.find(x=>x.id===r.item).status='Completed';save(K.i,is)}render()}
+function saveItem(){
+ const t=$('#t').value.trim(),l=$('#l').value.trim(),d=$('#d').value.trim(),qt=+$('#qt').value;
+ if(!t||!l||qt<1)return $('#derr').textContent='Add an item name, quantity and pickup area.';
+ const b=badLink(t+' '+l+' '+d);
+ if(b){const ps=load(K.p,[]);ps.unshift({who:me.email,link:b,when:new Date().toLocaleString()});save(K.p,ps);
+  return $('#derr').textContent='Blocked: unsafe link ('+b.slice(0,40)+'). Remove it and try again.'}
+ const is=load(K.i,[]);is.push({id:Date.now(),owner:me.email,cat:$('#c').value,title:t,qty:qt,loc:l,desc:d,status:'Available'});save(K.i,is);
+ dlg.close();['t','l','d'].forEach(x=>$('#'+x).value='');render();toast('Donation posted.')}
+render();
+</script></body></html>
